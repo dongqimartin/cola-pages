@@ -32,7 +32,7 @@ a{color:#1a5fb4}
 </head>
 <body><div class="wrap">
 <h1>我的基金看板 · 定稿版（2026-11-22）</h1>
-<div class="sub">净值每次打开自动取最新（<span id="navchk">正在检查</span>）｜金价 2026-11-21 中行报价｜公开版：持仓数字未预填，打开后手填，或用底部「⚙ 配置搬移」导入</div>
+<div class="sub">净值、金价都是打开自动取（<span id="navchk">正在检查</span> <span id="gchk2"></span>）｜公开版：持仓数字未预填，打开后手填，或用底部「⚙ 配置搬移」导入</div>
 <div class="sub">定稿日期 2026-11-22，试用一周（11-23 至 11-29），一周后按实际使用再改。<br><b>关于「实时更新」</b>：开放式基金每个交易日只公布一次净值，一般当晚 19:00–23:00 陆续出，盘中没有官方净值（东财盘中估值接口 2026-11-23 返回空）。所以这里的「实时」= 打开页面就查、开着时每 3 分钟自动再查一次，一公布就取到；取不到时退回内置的上一次净值。<span id="navsrc">本次页面用的是内置的 11-20 净值。</span> <button type="button" onclick="fetchNav()" style="margin-left:6px;padding:1px 8px">↻ 现在刷新</button></div>
 <div class="toc">跳转：<a href="#s8">⑧持仓变动</a>｜<a href="#s9">⑨同向暴露</a>｜<a href="#s10">⑩宏观商品</a>｜<a href="#s11">⑪事件日历</a>｜<a href="#s12">⑫规模资金</a>｜<a href="#s13">⑬业绩风险</a>｜<a href="#s14">⑭估值</a>｜<a href="#s15">⑮ETF对照</a>｜<a href="#s16">⑯费用</a>｜<a href="#s17">⑰规则卡</a>｜<a href="#s18">⑱综合研判</a></div>
 
@@ -47,7 +47,9 @@ a{color:#1a5fb4}
 <div class="ln">成本：<b id="kg"></b></div>
 <div class="ln">现市值：<b id="mg"></b></div>
 <div class="ln">浮盈浮亏：<span id="pg" class="v"></span></div>
-<div class="sub">现价 781.24 元/克 = 中国银行金条 2026-11-21 现货报价（同花顺 iFind、金投网同日均为 781.24，与上一日持平）。今天 11-22 是周日、金市休市，所以没有更新的报价；这是我能拿到的最新一个数，不是你手机上的实时价。你从中行 App 看到别的数，直接改框里的值。参考：上金所 Au99.99 11-20 收盘 764.76 元/克，银行金条比基准高约 16 元。</div></div>
+<div class="ln" style="border-top:1px dashed #ddd;margin-top:6px;padding-top:6px"><b>金价行情</b>（自动取）<button type="button" onclick="fetchGold()" style="margin-left:6px;padding:1px 8px">↻ 刷新</button> <span id="gchk" style="font-size:12px;color:#666"></span></div>
+<div id="gpmv"><div class="ln">正在取金价…</div></div>
+<div class="sub">上面「现价」框得你手动填：中国银行吉祥金条没有公开行情接口，只有中行 App 里有。懒得去 App 时看这段自动取的行情——纽约黄金、伦敦金是国际盘、按美元/盎司算，方向和中行金条同向，但幅度不能直接换算成元/克。<br><b>今天国内参考</b>：上金所 Au99.99 11-23 22:52 为 793.00 元/克，+1.48%（昨收 781.40）；东财 f43=79300、新浪 793.00 两边一致。中行卖价通常比它高十几元（11-21 对照：中行 781.24 对上金所 764.76，高 16.48 元/克，⚪ 单样本）。<br>⚙ 为什么国内金价不自动取：上金所、东财、新浪这几个接口都不允许浏览器跨域直取（我一个个试过，全被拦），只有腾讯的国际金价接口带跨域头。所以变量只有国际价，国内和你中行的价靠手填。</div></div>
 <hr>
 <div class="k">基金（公开版份额与成本留空，打开后手填或导入配置）</div>
 <div class="row"><b>002910 易方达供给改革混合</b>
@@ -178,8 +180,8 @@ a{color:#1a5fb4}
 
 <div class="card" id="s10">
 <h2>⑩ 宏观与商品价格面板</h2>
-<div class="sub">取数日 2026-11-22（周日休市），价格为 11-20 或最近交易日。口径不一的一律标 🟡，不挑一个写死。</div>
-<div class="row"><b>金价（美元/盎司）</b><br>现货金 11-20：约 3,514，盘中低 3,502.49，当日约 -3%，周累计约 -9.4%〔华南永昌转引 🟡 未取到官方收盘价〕<br>现货金 11-19 收盘：约 3,624–3,627，-2.7%〔观点网、腾讯财经 11-20〕<br>COMEX 12 月 11-20：3,539，-3.98%，周 -8.94%〔新华财经 11-20/21〕<br>年初高点 5,596 → 3,539，约 -36.8% ⚪ 我按这两个数算的〔高点：腾讯财经 11-20〕</div>
+<div class="sub">以下是 2026-11-22 抓的<b>快照</b>（价格为 11-20 或最近交易日），不会自己变；要看最新金价，看 ① 里自动取的那一段。口径不一的一律标 🟡，不挑一个写死。</div>
+<div class="row"><b>金价（美元/盎司）快照</b><br>现货金 11-20：约 3,514，盘中低 3,502.49，当日约 -3%，周累计约 -9.4%〔华南永昌转引 🟡 未取到官方收盘价〕<br>现货金 11-19 收盘：约 3,624–3,627，-2.7%〔观点网、腾讯财经 11-20〕<br>COMEX 12 月 11-20：3,539，-3.98%，周 -8.94%〔新华财经 11-20/21〕<br>年初高点 5,596 → 3,539，约 -36.8% ⚪ 我按这两个数算的〔高点：腾讯财经 11-20〕</div>
 <div class="row"><b>国内金价（元/克）</b><br>中行吉祥金：781.24（11-21 报价，已在①）<br>上金所 Au99.99：764.76（11-20 收盘）<br>沪金：796.36，-1.45%〔五矿期货早报，🟡 应为 11-19 收盘，口径和上金所不同〕</div>
 <div class="row"><b>美元与利率</b><br>美元指数：约 103.5–104，接近 19 个月高位〔金十 103.94（11-19 收）、五矿 103.45、新华财经 103.8，🟡 三个数不一致〕<br>10 年美债收益率：4.94%–5.05%〔新华财经 4.94%（11-20）；金十、Equiti 5.05%（11-19），🟡〕<br>联邦基金利率：现区间 3.75%–4.00% ⚪ 由“预期上调至 4%–4.25%”反推〔东方财富 11-19〕<br>12 月加息预期：市场普遍预期加 25 个基点〔东方财富 11-19〕<br>实际利率（TIPS）：<span class="todo">待填</span>。只检索到“逼近 2008 年以来高位”的定性说法，没有数值。</div>
 <div class="row"><b>铜（对应西部矿业、紫金矿业）</b><br>沪铜 92,400 元/吨，周 -12.13%；伦铜 12,163 美元/吨，周 -8.90%〔新浪研报 11-20/21〕</div>
@@ -496,8 +498,44 @@ function fetchNav(){
   done("净值已取到："+out.join("；")+"。");
  }).catch(function(){mob()});
 }
+function gRow(name,p,chg,extra){
+ var cls=(chg>0?"up":(chg<0?"down":"")),sg=(chg>=0?"+":"")+chg.toFixed(2)+"%";
+ return '<div class="ln">'+name+'：<b>'+p+'</b> <span class="'+cls+'">'+sg+'</span>'+(extra?' <span style="font-size:12px;color:#666">'+extra+'</span>':'')+'</div>';
+}
+function fetchGold(){
+ var box=document.getElementById("gpmv"),c1=document.getElementById("gchk"),c2=document.getElementById("gchk2");
+ if(!box)return;
+ var parts=[],au=0,tries=0,finished=false;
+ function stamp(){var s="更新于 "+hhmm();if(c1)c1.textContent=s;if(c2)c2.textContent="金价"+s}
+ function render(){
+  if(!parts.length)return;
+  var h=parts.join("");
+  if(au>0)h+='<div class="ln" style="font-size:12px;color:#666">中行吉祥金卖价一般高于上金所基准（11-21 对照高 16.48 元/克，⚪ 单样本），现价仍以你中行 App 为准。</div>';
+  box.innerHTML=h;
+ }
+ function tick(){tries++;if(tries>=2&&!finished){finished=true;stamp();if(!parts.length)box.innerHTML='<div class="ln">没取到金价行情（网络或接口问题）。点「↻ 刷新」再试，或直接看中行 App。</div>'}}
+ if(!window.fetch){box.innerHTML='<div class="ln">这个浏览器不支持自动取数，金价请手动看。</div>';return}
+ box.innerHTML='<div class="ln">正在取金价…</div>';
+ try{
+  fetch("https://push2.eastmoney.com/api/qt/stock/get?secid=118.AU9999&fields=f43,f57,f58,f60,f169,f170&_="+Date.now(),{cache:"no-store"})
+   .then(function(r){return r.json()})
+   .then(function(j){var d=j&&j.data;if(!d||!(d.f43>0))throw new Error("empty");
+    au=d.f43/100;parts.unshift(gRow("上金所黄金 Au99.99",au.toFixed(2)+" 元/克",d.f170/100,"昨收 "+(d.f60/100).toFixed(2)));render()})
+   .catch(function(){}).then(function(){tick()});
+ }catch(e){tick()}
+ try{
+  fetch("https://qt.gtimg.cn/q=hf_GC,hf_XAU&_="+Date.now(),{cache:"no-store"})
+   .then(function(r){return r.text()})
+   .then(function(t){var re=/v_(hf_[A-Z]+)="([^"]*)"/g,m,n=0;
+    while((m=re.exec(t))){var f=m[2].split(","),p=+f[0],ch=+f[1];if(!(p>0))continue;
+     parts.push(gRow(m[1]==="hf_GC"?"纽约黄金（COMEX 主力）":"伦敦金现货",p.toFixed(2)+" 美元/盎司",ch,(f[12]||"")+" "+(f[6]||"")));n++}
+    render()})
+   .catch(function(){}).then(function(){tick()});
+ }catch(e){tick()}
+}
 try{fetchNav()}catch(e){document.getElementById("navsrc").textContent="自动取数没跑起来，用的是内置的 11-20 净值。"}
-setInterval(function(){if(!document.hidden)try{fetchNav()}catch(e){}},180000);
-document.addEventListener("visibilitychange",function(){if(!document.hidden)try{fetchNav()}catch(e){}});
+try{fetchGold()}catch(e){}
+setInterval(function(){if(!document.hidden){try{fetchNav()}catch(e){}try{fetchGold()}catch(e){}}},180000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden){try{fetchNav()}catch(e){}try{fetchGold()}catch(e){}}});
 </script>
 </body></html>
