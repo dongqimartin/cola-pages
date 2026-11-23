@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的基金看板 v1.6</title>
+<style>
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f4f5f7;color:#222;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto;padding:12px}
+h1{font-size:20px;margin:8px 0}
+h2{font-size:16px;margin:0 0 8px;border-left:4px solid #c8102e;padding-left:8px}
+.card{background:#fff;border-radius:10px;padding:12px 14px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.sub{color:#888;font-size:12px}
+.row{padding:6px 0;border-bottom:1px solid #f0f0f0}
+.row:last-child{border-bottom:0}
+.k{color:#666;font-size:13px}.v{font-size:16px;font-weight:600}
+.up{color:#d6001c}.down{color:#0a8f3c}
+.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:8px;background:#fff3cd;color:#8a6d00;margin-left:4px}
+.todo{color:#b45309}
+.lot{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0}.lot input{width:92px;margin:0}.lot input[type=date]{width:128px}.lot span.lo{font-size:12px;color:#555;flex-basis:100%}button{padding:5px 10px;border:1px solid #ccc;border-radius:6px;background:#f6f6f6;font-size:13px}
+input{width:96px;padding:5px;border:1px solid #ccc;border-radius:6px;font-size:14px;margin:2px 8px 2px 0}
+.ln{padding:5px 0;font-size:14px}
+.ln b{font-weight:600}
+svg{width:100%;height:60px}
+ul{padding-left:18px;margin:4px 0}
+details{margin:4px 0}summary{cursor:pointer;color:#555;font-size:13px}
+.qh{font-size:13px;padding:3px 0;word-break:break-all}
+.lamp{font-size:14px;padding:3px 0}
+a{color:#1a5fb4}
+.toc{font-size:13px;line-height:2}
+</style>
+</head>
+<body><div class="wrap">
+<h1>我的基金看板 · 定稿版（2026-11-22）</h1>
+<div class="sub">净值每次打开自动取最新（<span id="navchk">正在检查</span>）｜金价 2026-11-21 中行报价｜公开版：持仓数字未预填，打开后手填，或用底部「⚙ 配置搬移」导入</div>
+<div class="sub">定稿日期 2026-11-22，试用一周（11-23 至 11-29），一周后按实际使用再改。<br><b>关于「实时更新」</b>：开放式基金每个交易日只公布一次净值，一般当晚 19:00–23:00 陆续出，盘中没有官方净值（东财盘中估值接口 2026-11-23 返回空）。所以这里的「实时」= 打开页面就查、开着时每 3 分钟自动再查一次，一公布就取到；取不到时退回内置的上一次净值。<span id="navsrc">本次页面用的是内置的 11-20 净值。</span> <button type="button" onclick="fetchNav()" style="margin-left:6px;padding:1px 8px">↻ 现在刷新</button></div>
+<div class="toc">跳转：<a href="#s8">⑧持仓变动</a>｜<a href="#s9">⑨同向暴露</a>｜<a href="#s10">⑩宏观商品</a>｜<a href="#s11">⑪事件日历</a>｜<a href="#s12">⑫规模资金</a>｜<a href="#s13">⑬业绩风险</a>｜<a href="#s14">⑭估值</a>｜<a href="#s15">⑮ETF对照</a>｜<a href="#s16">⑯费用</a>｜<a href="#s17">⑰规则卡</a>｜<a href="#s18">⑱综合研判</a></div>
+
+<div class="card">
+<h2>① 今日快照</h2>
+<div class="row"><div class="k">易方达供给改革混合 002910｜单位净值（<span id="nd1">11-20</span>）</div><div class="v"><span id="nav1">6.8717</span> <span class="down" id="chg1">-1.48%</span></div></div>
+<div class="row"><div class="k">易方达产业机遇混合C 021180｜单位净值（<span id="nd2">11-20</span>）</div><div class="v"><span id="nav2">2.5286</span> <span class="down" id="chg2">-1.68%</span></div></div>
+<div class="row"><b>实物金条｜中行吉祥金投资金条</b>
+<div class="ln">买入价 <input id="gp" type="number" value="">元/克</div>
+<div class="ln">克重 <input id="gg" type="number" value="">克</div>
+<div class="ln">现价 <input id="cp" type="number" value="781.24">元/克</div>
+<div class="ln">成本：<b id="kg"></b></div>
+<div class="ln">现市值：<b id="mg"></b></div>
+<div class="ln">浮盈浮亏：<span id="pg" class="v"></span></div>
+<div class="sub">现价 781.24 元/克 = 中国银行金条 2026-11-21 现货报价（同花顺 iFind、金投网同日均为 781.24，与上一日持平）。今天 11-22 是周日、金市休市，所以没有更新的报价；这是我能拿到的最新一个数，不是你手机上的实时价。你从中行 App 看到别的数，直接改框里的值。参考：上金所 Au99.99 11-20 收盘 764.76 元/克，银行金条比基准高约 16 元。</div></div>
+<hr>
+<div class="k">基金（公开版份额与成本留空，打开后手填或导入配置）</div>
+<div class="row"><b>002910 易方达供给改革混合</b>
+<div class="ln">份额 <input id="s1" type="number" value="">成本 <input id="c1" type="number" value=""></div>
+<div class="ln">现价净值：<b id="nav1b">6.8717</b>（<span id="nd1b">11-20</span> 收盘）</div>
+<div class="ln">成本：<b id="k1"></b></div>
+<div class="ln">现市值：<b id="m1"></b></div>
+<div class="ln">浮盈浮亏：<span id="p1" class="v"></span></div></div>
+<div class="row"><b>021180 易方达产业机遇混合C</b>
+<div class="ln">份额 <input id="s2" type="number" value="">成本 <input id="c2" type="number" value=""></div>
+<div class="ln">现价净值：<b id="nav2b">2.5286</b>（<span id="nd2b">11-20</span> 收盘）</div>
+<div class="ln">成本：<b id="k2"></b></div>
+<div class="ln">现市值：<b id="m2"></b></div>
+<div class="ln">浮盈浮亏：<span id="p2" class="v"></span></div></div>
+<hr>
+<div class="ln">成本合计：<b id="totc"></b></div>
+<div class="ln">现市值合计：<b id="tot"></b></div>
+<div class="ln">浮盈浮亏合计：<span id="pl" class="v"></span></div>
+<div class="ln">现市值占比（002910 / 021180 / 金条）：<span id="pct"></span></div>
+<div class="ln" id="daymv">当日两支基金市值变动：待算</div>
+<div class="sub">基金按最新净值估算，未含手续费；金条现市值按你填的中行现价。数据只存在你这台设备的浏览器里。</div>
+</div>
+
+<div class="card">
+<h2>② 近 30 个交易日涨跌归因</h2>
+<div class="sub">区间：2026-10-09 收盘 → 2026-11-20 收盘，共 30 个交易日。净值来自天天基金历史净值接口，个股涨跌来自东方财富日线（前复权），2026-11-22 取。</div>
+<div class="row"><div class="k">002910 区间涨跌</div><div class="v down">7.9640 → 6.8717，-13.72%</div></div>
+<div class="row"><div class="k">021180 区间涨跌</div><div class="v down">2.9591 → 2.5286，-14.55%</div></div>
+<div class="row"><div class="k">两支都是区间最高点在起点、最低点在终点</div><div>即这 30 天几乎是单边回撤，自区间高点的回撤等于区间涨跌。</div></div>
+<div class="row"><div class="k">近1周 / 近1月 / 近3月（天天基金页面）</div><div>002910：-5.61% / -8.73% / -17.98%<br>021180：-6.02% / -9.34% / -19.15%<br>同类平均：-5.17% / -9.45% / -18.34%（002910 页）｜-6.33% / -11.61% / -22.38%（021180 页）<br>沪深300：-1.54% / -4.76% / -13.90%</div></div>
+<div class="row"><b>为什么跌：个股拖累估算</b><br><span class="sub">方法：贡献 ≈ 持仓占比 × 该股同期涨跌（占比取页面披露的最新持仓）。🟡 持仓是定期报告口径，区间内可能已调仓，这是粗估，不是基金真实归因。</span></div>
+<div class="row">个股区间涨跌（10-09→11-20）：金诚信 -41.41%｜西部矿业 -31.88%｜紫金矿业 -22.95%｜兖矿能源 -17.14%｜潞安环能 -16.69%｜药明康德 -10.77%｜康龙化成 -10.69%｜寒武纪 -6.69%｜巨星科技 +0.49%</div>
+<div class="row"><b class="down">估算贡献（002910 / 021180，单位：基金净值百分点）</b><br>西部矿业 -2.23 / -2.26<br>紫金矿业 -2.13 / -2.25<br>金诚信 -1.46 / -1.54<br>兖矿能源 -1.15 / -1.18<br>药明康德 -1.06 / -1.06<br>潞安环能 -0.38 / -0.36<br>康龙化成 -0.27 / -0.28<br>寒武纪 -0.18 / -0.18<br>巨星科技 +0.03 / +0.02<br><b>以上九只合计 -8.84 / -9.09</b></div>
+<div class="row"><b>按方向归并</b><br>黄金与有色（紫金、西部、金诚信）：-5.82 / -6.05，约占总跌幅的 42% / 42%<br>煤炭（兖矿、潞安）：-1.53 / -1.54<br>医药（药明、康龙）：-1.33 / -1.34<br>AI 芯片（寒武纪）：-0.18 / -0.18<br>其余（三一重工/华阳股份/非前十持仓、现金与调仓影响）：约 -4.88 / -5.46，由总跌幅减前九只得出，无法拆分。</div>
+<div class="row"><b>结论（⚪【编者推断】）</b><br>这 30 天的回撤，主要拖累是金属股（尤其金诚信、西部矿业、紫金矿业），与金价本周大跌的时间线吻合；药明康德虽然有利好，区间仍是 -10.77%。大约三分之一的跌幅我没法从前十大持仓里解释，可能来自调仓和未披露持仓。</div>
+<div class="row"><b>为什么曾涨（反弹日）</b><br>单日涨幅最大：11-04 +3.88% / +4.30%；10-23 +2.57% / +2.44%。当日原因我没查，先留空，不编。<br>单日跌幅最大：10-22 -2.97% / -3.18%；11-12 -2.84% / -2.96%；10-15 -2.60% / -2.59%。</div>
+</div>
+
+<div class="card">
+<h2>③ 30 个交易日净值走势（2026-10-09 → 11-20，起点 = 100）</h2>
+<svg id="chart" viewBox="0 0 300 100" preserveAspectRatio="none" style="height:120px"></svg>
+<div class="sub"><span style="color:#c8102e">━</span> 002910（终点 86.28）｜<span style="color:#1a5fb4">━</span> 021180（终点 85.45）</div>
+</div>
+
+<div class="card">
+<h2>④ 重仓方向每日动态</h2>
+<div class="sub">前十大重仓 = 2026 年第 3 季度报告（截至 2026-09-30，2026-10-27 发布）。✅ 2026-11-22 已与两份季报原文 §5.3.1 逐行核对一致，这是目前最新一期披露；下一期为 2026 年第 4 季度报告，🟡预计 2027 年 1 月下旬发布（按季度结束后 15 个工作日内推算）。括号内为 11-20 当日涨跌。</div>
+<div class="row"><div class="k">002910 前十占比合计 52.23%｜021180 合计 51.71%</div></div>
+<ul>
+<li>药明康德 9.86% / 9.83%（-2.49%）</li>
+<li>紫金矿业 9.29% / 9.79%（-0.63%）</li>
+<li>西部矿业 7.01% / 7.09%（-1.57%）</li>
+<li>兖矿能源 6.73% / 6.90%（-0.35%）</li>
+<li>巨星科技 5.36% / 4.74%（-1.86%）</li>
+<li>金诚信 3.53% / 3.73%（-3.36%）</li>
+<li>寒武纪 2.66% / 2.71%（-1.50%）</li>
+<li>康龙化成 2.49% / 2.59%（-3.39%）</li>
+<li>潞安环能 2.26% / 2.16%（-1.37%）</li>
+<li>三一重工 3.04%（仅 002910，+1.06%）｜华阳股份 2.17%（仅 021180，-1.35%）</li>
+</ul>
+<div class="sub">每行格式：002910 占比 / 021180 占比。持仓为定期报告披露口径，非实时。021180 另持兖矿能源 H 股（01171）0.38%，港股通合计占净值 6.29%。</div>
+<div class="row"><b>季报里另外核到的（两份 2026Q3 季报原文）</b><br>基金经理：两支都是杨宗昌（002910 自 2019-04-23，021180 自 2024-08-28 成立起）。<br>调仓幅度：二季度前十几乎全是半导体（华峰测控 9.15%、北方华创 8.82%、神工股份、芯原股份、寒武纪、中科飞测…，002910 前十合计 59.40%），三季度只留下寒武纪（6.42% → 2.66%），其余九只全换。经理原话：三季度「增加了 CXO、煤炭、有色金属及机械设备行业的配置」，「对人工智能产业发展的前景仍然保持乐观」（§4.4）。<br>行业配置（002910 / 021180）：采矿业 35.05% / 36.23%｜制造业 27.94% / 22.40%｜科学研究和技术服务（CXO）13.81% / 13.94%｜信息技术 5.61% / 5.75%。<br>股票仓位：84.10% / 80.07%（021180 另有港股 6.29%），现金约 18.75% / 16.48%。<br>规模：002910 净资产 219.43 亿（2025-12-31 为 35.49 亿，三个季度约 6.2 倍）；产业机遇（A+C）49.35 亿（2025-12-31 为 0.62 亿）。三季度 002910 净申购 11.57 亿份，021180（C 类）净申购 10.78 亿份。<br>三季度业绩：002910 -9.42%（基准 -11.79%），021180 -8.84%（基准 -9.16%）。两支 2026-06-01 起都把业绩基准改成了中证 800 口径。<br>数据来源：易方达供给改革混合 / 产业机遇混合 2026 年第 3 季度报告（AN202610271830958706 / AN202610271830959094）；季度对比与规模序列取自天天基金 F10，2026-11-22 取。</div>
+<div class="row"><div class="k"><b>方向新闻（标注：利好 / 利空 / 中性，来源在括号）</b></div></div>
+<div class="row"><b class="down">利空｜黄金与有色（紫金矿业、金诚信、西部矿业）</b><br>11-20 纽约 12 月黄金期货跌 3.98% 报 3539 美元/盎司，周跌 8.94%，原因是美元走强、美联储加息预期升温（新华财经 2026-11-20/21）。11-19 报道称金价大跌拖累黄金股，紫金矿业、金诚信跌超 5%，西部矿业跌超 3%（新浪财经 2026-11-19）。<br>⚪【编者推断】这两只基金 11-20 净值分别 -1.48% / -1.68%，这几只合计占前十约三成，是拖累之一，但精确贡献要等持仓披露后才能算。</div>
+<div class="row"><b class="up">利好｜药明康德（占比最高，9.8%）</b><br>11-09 美国国防部决定将其移出 1260H「中国军工企业」名单，11-10 公告；11-13 双方提交共同撤诉约定，11-16（美国时间）获法院批准（公司公告，央广网 11-11、新浪 11-17）。前三季营收同比 +38.6%（经济观察网 11-19）；同文提示后续仍存政策变量。<br>中性：11-20 当日仍 -2.49%，该消息已在前面计入价格的可能性大，⚪【编者推断】。</div>
+<div class="row"><b>中性偏利好｜巨星科技</b><br>前三季营收 122.89 亿元，同比 +10.15%；归母净利润 20.43 亿元，同比 -5.19%，主因汇兑损益；扣非同比 -1.73%（中财网 11-09）。中信建投维持「买入」，西南证券首次覆盖「增持」（11-03、11-10）。</div>
+<div class="row"><b>中性｜寒武纪</b><br>11-12 盘中涨超 12% 重回 1000 元；11-20 收 920.00 元，-1.50%（证券时报网 / 上交所行情）。仅有价格事实，我没查到足以解释方向的基本面新闻。</div>
+<div class="row"><b>🟡 待核实｜煤炭（兖矿能源、潞安环能、华阳股份）</b><br>11-20 煤炭板块涨跌说法不一：东吴收评写煤炭 +0.33%，另一来源写煤炭开采加工 -1.39%。两支基金持有的煤炭股当日均下跌。口径冲突，暂不下结论。</div>
+<div class="row"><b>🟡 待核实｜康龙化成、金诚信（药明康德之外的医药/资源）</b><br>仅检索到弱来源（社群整理），没有可引用的公告，先不写。</div>
+<div class="row"><b>大盘背景（中性）</b>：11-20 沪指 -1.22%/-1.23%，创业板指 -3.54%，科创综指 -5.23%（东方财富股吧收评、东吴市场收评）。</div>
+<div class="sub">新闻为 2026-11-22 检索结果，未逐条回溯原文全文；利好/利空判断按事件对该股的直接含义标注，不预测次日涨跌。</div>
+</div>
+
+<div class="card">
+<h2>⑤ 实验 / 操作记录</h2>
+<div class="sub">每笔动作一行：日期｜品种｜金额｜确认净值/金价｜备注</div>
+<div class="row todo">待填：买入日期和每笔金额（发我截图或文字，我按行补）</div>
+</div>
+
+<div class="card">
+<h2>⑥ 对比台与信任台账（空位）</h2>
+<div class="row"><div class="k">对比对象</div><div class="todo">待定：另选一支同方向、你认为操作力强的基金</div></div>
+<div class="row"><div class="k">考察点一：方向好不好</div><div class="todo">待填</div></div>
+<div class="row"><div class="k">考察点二：团队靠不靠得住</div><div class="todo">待填</div></div>
+<div class="row"><div class="k">信任台账底线</div><div class="todo">待填：出现什么情况就警惕/赎回</div></div>
+</div>
+
+<div class="card">
+<h2>⑦ 本周新增（攒钢镚）</h2>
+<div class="row todo">待填：这周你想到的一条 → 它跟主线有关系吗？</div>
+</div>
+
+<div class="card" id="s8">
+<h2>⑧ 季度持仓变动台（近 7 个季度前十）</h2>
+<div class="sub">来源：天天基金 F10 持仓明细，2026-11-22 取；2026Q3 另与季报原文 §5.3.1 核对一致。每行 = 一个季度前十，数字为占基金净值 %。只含前十，不含全部持仓。</div>
+<div class="row"><b>002910 易方达供给改革混合</b>
+<div class="qh"><b>2026Q3</b>：药明康德 9.86｜紫金矿业 9.29｜西部矿业 7.01｜兖矿能源 6.73｜巨星科技 5.36｜金诚信 3.53｜三一重工 3.04｜寒武纪 2.66｜康龙化成 2.49｜潞安环能 2.26</div>
+<div class="qh"><b>2026Q2</b>：华峰测控 9.15｜北方华创 8.82｜神工股份 7.21｜芯原股份 6.56｜寒武纪 6.42｜中科飞测 6.37｜伟测科技 5.31｜京仪装备 3.69｜富创精密 3.17｜申菱环境 2.70</div>
+<details><summary>展开更早 5 个季度</summary>
+<div class="qh"><b>2026Q1</b>：华峰测控 7.74｜芯原股份 7.60｜申菱环境 6.23｜长川科技 5.98｜伟测科技 5.50｜富创精密 5.42｜江丰电子 5.37｜中科飞测 4.95｜神工股份 4.91｜中际旭创 4.30</div>
+<div class="qh"><b>2025Q4</b>：巨星科技 6.77｜华阳股份 6.51｜长川科技 6.12｜中科飞测 5.45｜伟测科技 5.10｜华丰科技 4.86｜神工股份 4.76｜京仪装备 4.71｜甬金股份 4.56｜骄成超声 4.04</div>
+<div class="qh"><b>2025Q3</b>：德明利 10.00｜巨星科技 6.94｜佰维存储 6.36｜伟测科技 5.73｜科士达 4.97｜甬金股份 4.84｜中微公司 4.67｜华懋科技 4.51｜申菱环境 4.47｜奥海科技 4.46</div>
+<div class="qh"><b>2025Q2</b>：宝丰能源 7.34｜香农芯创 5.07｜奥飞数据 5.03｜闻泰科技 4.96｜焦点科技 4.92｜德明利 4.84｜科华数据 4.72｜值得买 4.28｜光环新网 3.92｜甬金股份 3.20</div>
+<div class="qh"><b>2025Q1</b>：宝丰能源 6.56｜甬金股份 6.14｜兴森科技 5.49｜奥飞数据 5.02｜闻泰科技 4.96｜科华数据 4.92｜德明利 4.07｜华阳集团 3.63｜伯特利 3.46｜南亚新材 3.12</div>
+</details></div>
+<div class="row"><b>021180 易方达产业机遇混合（A+C 同一组合）</b>
+<div class="qh"><b>2026Q3</b>：药明康德 9.83｜紫金矿业 9.79｜西部矿业 7.09｜兖矿能源 6.90｜巨星科技 4.74｜金诚信 3.73｜寒武纪 2.71｜康龙化成 2.59｜华阳股份 2.17｜潞安环能 2.16</div>
+<div class="qh"><b>2026Q2</b>：华峰测控 9.21｜北方华创 9.09｜寒武纪 6.44｜芯原股份 6.39｜神工股份 6.23｜中科飞测 5.31｜伟测科技 5.31｜京仪装备 3.71｜富创精密 3.18｜申菱环境 2.52</div>
+<details><summary>展开更早 5 个季度</summary>
+<div class="qh"><b>2026Q1</b>：华峰测控 7.91｜芯原股份 7.68｜吉利汽车 7.23｜申菱环境 6.17｜长川科技 5.79｜江丰电子 5.26｜伟测科技 5.26｜中科飞测 4.86｜富创精密 4.71｜神工股份 4.69</div>
+<div class="qh"><b>2025Q4</b>：华阳股份 6.42｜长川科技 6.12｜华丰科技 5.14｜中科飞测 5.12｜巨星科技 5.07｜伟测科技 5.01｜吉利汽车 4.84｜京仪装备 4.76｜神工股份 4.72｜骄成超声 4.12</div>
+<div class="qh"><b>2025Q3</b>：德明利 9.36｜吉利汽车 8.09｜伟测科技 5.11｜巨星科技 5.08｜佰维存储 5.00｜科士达 4.53｜中微公司 4.26｜甬金股份 4.25｜申菱环境 4.18｜华懋科技 4.08</div>
+<div class="qh"><b>2025Q2</b>：宝丰能源 7.52｜香农芯创 5.77｜德明利 5.33｜科华数据 5.31｜奥飞数据 5.21｜吉利汽车 5.19｜闻泰科技 5.17｜值得买 4.56｜焦点科技 4.15｜光环新网 3.96</div>
+<div class="qh"><b>2025Q1</b>：吉利汽车 7.03｜甬金股份 5.92｜闻泰科技 4.89｜科华数据 4.73｜宝丰能源 4.37｜兴森科技 4.23｜德明利 3.90｜奥飞数据 3.67｜华阳集团 3.55｜南亚新材 3.16</div>
+</details></div>
+<div class="row"><b>前十与上一季重合只数</b>（002910 / 021180，按股票名称对比）<br>2025Q2：6 / 6｜2025Q3：2 / 2｜2025Q4：3 / 3｜2026Q1：4 / 5｜2026Q2：7 / 7｜<b>2026Q3：1 / 1</b><br>⚪【编者归纳】重合只数是我数出来的；重合越少，说明这个季度调仓越大。</div>
+<div class="row"><b>每季前十的方向</b> ⚪【编者归纳，按公司业务粗分，非基金披露】<br>2025Q2：能源化工、算力/存储、互联网混合<br>2025Q3：存储与 AI 硬件<br>2025Q4：半导体设备/测试 + 机械 + 煤<br>2026Q1：半导体设备/封测/IP<br>2026Q2：半导体几乎全家<br>2026Q3：医药 CXO + 有色 + 煤炭 + 机械</div>
+<div class="row">下一次更新：2026 年第 4 季度报告，🟡 预计 2027 年 1 月下旬（按季度结束后 15 个工作日内推算，未核到公司预告日）。出来之后在这里补一行，看他这次又换去了哪里。</div>
+</div>
+
+<div class="card" id="s9">
+<h2>⑨ 你的组合同向暴露（随上面输入框实时算）</h2>
+<div class="sub">方法：金条按现市值；基金里的方向 = 该基金现市值 × 季报前十里该方向个股占净值 %。只算前十，其余仓位和现金不计入，所以是下限，不是全貌。⚪ 方向归类是我分的。</div>
+<div id="exlist"></div>
+<div class="sub">各方向占基金净值（002910 / 021180）：金属三只 19.83% / 20.61%；煤炭 8.99% / 11.23%（021180 含华阳股份 2.17%，未含兖矿 H 股 0.38%）；CXO 12.35% / 12.42%；机械设备 8.40% / 4.74%；AI 芯片 2.66% / 2.71%。来源：2026Q3 季报 §5.3.1。</div>
+<div class="sub">⚪ “金属三只”的股价和金价不是一回事（矿业公司还受铜价、成本、产量影响），这里只表示“涨跌方向相近”，不是说它们跟金价一对一联动。</div>
+</div>
+
+<div class="card" id="s10">
+<h2>⑩ 宏观与商品价格面板</h2>
+<div class="sub">取数日 2026-11-22（周日休市），价格为 11-20 或最近交易日。口径不一的一律标 🟡，不挑一个写死。</div>
+<div class="row"><b>金价（美元/盎司）</b><br>现货金 11-20：约 3,514，盘中低 3,502.49，当日约 -3%，周累计约 -9.4%〔华南永昌转引 🟡 未取到官方收盘价〕<br>现货金 11-19 收盘：约 3,624–3,627，-2.7%〔观点网、腾讯财经 11-20〕<br>COMEX 12 月 11-20：3,539，-3.98%，周 -8.94%〔新华财经 11-20/21〕<br>年初高点 5,596 → 3,539，约 -36.8% ⚪ 我按这两个数算的〔高点：腾讯财经 11-20〕</div>
+<div class="row"><b>国内金价（元/克）</b><br>中行吉祥金：781.24（11-21 报价，已在①）<br>上金所 Au99.99：764.76（11-20 收盘）<br>沪金：796.36，-1.45%〔五矿期货早报，🟡 应为 11-19 收盘，口径和上金所不同〕</div>
+<div class="row"><b>美元与利率</b><br>美元指数：约 103.5–104，接近 19 个月高位〔金十 103.94（11-19 收）、五矿 103.45、新华财经 103.8，🟡 三个数不一致〕<br>10 年美债收益率：4.94%–5.05%〔新华财经 4.94%（11-20）；金十、Equiti 5.05%（11-19），🟡〕<br>联邦基金利率：现区间 3.75%–4.00% ⚪ 由“预期上调至 4%–4.25%”反推〔东方财富 11-19〕<br>12 月加息预期：市场普遍预期加 25 个基点〔东方财富 11-19〕<br>实际利率（TIPS）：<span class="todo">待填</span>。只检索到“逼近 2008 年以来高位”的定性说法，没有数值。</div>
+<div class="row"><b>铜（对应西部矿业、紫金矿业）</b><br>沪铜 92,400 元/吨，周 -12.13%；伦铜 12,163 美元/吨，周 -8.90%〔新浪研报 11-20/21〕</div>
+<div class="row"><b>煤（对应兖矿能源、潞安环能、华阳股份）</b><br>焦煤期货 1,397 元/吨，周 -2.92%；动力煤均价 755 元/吨（11-18），周 0.00%〔同花顺 11-21〕<br>京唐港主焦煤库提价 2,300–2,360 元/吨，周降 40–60〔长江有色、韭研公社，🟡 两源数不同〕</div>
+</div>
+
+<div class="card" id="s11">
+<h2>⑪ 政策与事件日历</h2>
+<div class="sub">时间统一北京时间。已核到日期的写日期，没核到的写待填，不猜。</div>
+<div class="row"><b>12-04（周五）21:30</b>　美国 11 月非农就业〔美国劳工统计局日程、isnow〕</div>
+<div class="row"><b>12-08 至 12-09</b>　美联储议息会议（FOMC）；利率决议北京时间 12-10 03:00〔多来源一致〕</div>
+<div class="row"><b>12-10（周四）21:30</b>　美国 11 月 CPI〔美国劳工统计局日程〕</div>
+<div class="row"><b>12-23</b>　美国 11 月 PCE 🟡 只有一个来源（isnow）</div>
+<div class="row"><b>12 月内</b>　中央政治局会议、中央经济工作会议：<span class="todo">具体日期待填</span>；研报预期基调偏积极、2027 财政偏扩张〔国盛宏观 11 月，⚪ 属预期不是结论〕</div>
+<div class="row"><b>2026 年底前</b>　美国行政管理和预算局预计发布《生物安全法案》“受关注生物技术公司”清单；药明康德已于 11-09 移出 1260H 名单，不能经这条路径被自动纳入，但清单本身仍待发布〔药明康德公告、一财 11-10〕<br>对应持仓：药明康德、康龙化成（CXO 约占净值 12.4%）</div>
+<div class="row"><b>11-30 前</b>　煤矿“同查同治”阶段，省级监管抽查不低于 20% 🟡 来自研报转述，原文件待核〔山西证券 2026-08〕<br>11-04 国家矿山安监局通知：井工煤矿 2027 年 6 月底前完成入井人数、产量、用电量监测联网〔证券之星 11-15〕<br>对应持仓：兖矿能源、潞安环能、华阳股份</div>
+<div class="row"><b>AI 芯片出口管制</b>　<span class="todo">待填</span>，这轮没检索到可引用的新条款。</div>
+<div class="row"><b>2027 年 1 月下旬 🟡</b>　两支基金 2026 年四季报，按“季度结束后 15 个工作日内”推算，未核到公司预告日。</div>
+</div>
+
+<div class="card" id="s12">
+<h2>⑫ 规模与资金流</h2>
+<div class="sub">来源：2026Q3 季报 §6、§7，天天基金 F10 资产配置页（2026-11-22 取）。</div>
+<div class="row"><b>002910 净资产（亿元）</b><br>2025-12-31：35.49<br>2026-03-31：53.52<br>2026-06-30：140.76<br>2026-09-30：219.43（Q3 环比 +55.9%）</div>
+<div class="row"><b>021180 A+C 净资产（亿元）</b><br>2025-12-31：0.62<br>2026-03-31：1.04<br>2026-06-30：6.06<br>2026-09-30：49.35（Q3 环比 +714.4%）</div>
+<div class="row"><b>002910 三季度份额</b><br>期初 16.04 亿份，申购 20.78 亿份，赎回 9.22 亿份，期末 27.61 亿份（×1.72）<br>净申购 11.57 亿份，按期末净值 7.9474 粗估约 91.9 亿元，约占期末规模 42% ⚪</div>
+<div class="row"><b>021180 三季度份额</b><br>C 类：1.36 亿份 → 12.15 亿份（×8.92）；A 类：0.50 亿份 → 4.52 亿份（×8.97）<br>净申购：A 类 4.02 亿份，C 类 10.78 亿份，按期末净值粗估约 43.8 亿元，约占期末规模 89% ⚪</div>
+<div class="row"><b>管理人自持</b>　002910：1,308.66 万份（0.474%）；021180 A 类：2,174.32 万份（4.81%），C 类为 0〔季报 §7〕</div>
+<div class="row"><b>申购状态（天天基金 2026-11-22）</b>　两支都是“限大额，单日累计购买上限 50 万元”，开放赎回。</div>
+<div class="row">⚪【编者归纳】规模涨得快、净申购多集中在 7–9 月；三季度净值下跌时，新进份额的成本普遍高于现在的净值。这两句是我从数字推的，不是基金公司的结论。</div>
+</div>
+
+<div class="card" id="s13">
+<h2>⑬ 业绩与风险指标</h2>
+<div class="sub">季报数为原文值；回撤和波动是我按天天基金日净值（2025-01-02 至 2026-11-20 共 456 个交易日）自己算的，不含分红（两支成立以来分红均为 0 次）。</div>
+<div class="row"><b>002910（季报）</b><br>近 3 个月 -9.42%，基准 -11.79%<br>近 6 个月 +101.59%，基准 -2.96%<br>近 1 年 +142.68%，基准 -5.01%<br>近 3 年 +192.47%；成立以来 +694.74%，基准 +37.49%<br>日净值增长率标准差：近 3 个月 1.76%、近 6 个月 2.51%、近 1 年 2.31%</div>
+<div class="row"><b>021180 C 类（季报）</b><br>近 3 个月 -8.84%，基准 -9.16%<br>近 6 个月 +95.46%，基准 -1.79%<br>近 1 年 +133.52%，基准 -6.49%<br>成立以来 +195.21%，基准 +27.60%<br>日净值增长率标准差：近 3 个月 1.64%、近 6 个月 2.40%、近 1 年 2.21%</div>
+<div class="row"><b>我算的回撤与波动（11-20 数据，最新回撤看 ⑰ 线三）</b><br>002910：区间最高 8.7744（2026-07-01），11-20 时 6.8717，距高点 -21.68%（按 11-23 净值 7.0603 为 -19.54%）；2025 年以来最大回撤 -24.32%（2025-03-12 至 2025-04-08）；日波动 2.07%，近 60 日 1.28%<br>021180：区间最高 3.2412（2026-08-17），11-20 时 2.5286，距高点 -21.99%（按 11-23 净值 2.6015 为 -19.74%）；2025 年以来最大回撤 -22.97%（同一时段）；日波动 1.97%，近 60 日 1.33%<br>⚪ 11-20 那天的回撤已经和 2025 年春那次最大回撤差不多深；11-23 反弹后收窄了两个百分点左右。</div>
+<div class="row">夏普比率、卡玛比率：<span class="todo">待填</span>（要用无风险利率和更长区间，这轮没算）。</div>
+</div>
+
+<div class="card" id="s14">
+<h2>⑭ 估值温度</h2>
+<div class="sub">东方财富行情 2026-11-20 收盘：动态市盈率 / 滚动市盈率 / 市净率。周期股低市盈率可能出现在盈利高点，不能直接当便宜 ⚪。</div>
+<div class="row">药明康德：16.52 / 16.14 / 4.41<br>紫金矿业：8.23 / 8.83 / 3.03<br>西部矿业：6.46 / 7.81 / 2.33<br>金诚信：8.27 / 8.93 / 2.15<br>兖矿能源：11.49 / 13.77 / 2.15<br>潞安环能：10.75 / 17.25 / 0.81<br>华阳股份：12.95 / 12.84 / 1.03<br>巨星科技：11.79 / 13.40 / 1.65<br>三一重工：16.46 / 18.93 / 1.86<br>康龙化成：42.54 / 39.96 / 4.21<br>寒武纪：116.81 / 138.77 / 38.25</div>
+<div class="row"><b>指数温度</b><br>中证 800：市盈率约 14.9–15.0，市净率约 1.42–1.43〔股查查 11-16、百分位网站 11-10〕<br>市盈率近 10 年分位约 63%–64%，市净率分位 27.3%〔百分位网站 11-10〕<br>🟡 另一个站（etf.run）给的市盈率分位是 28.35%，口径不同，不合并</div>
+<div class="row">个股估值历史分位：<span class="todo">待填</span>（这轮没取到可靠的分位数据）。</div>
+</div>
+
+<div class="card" id="s15">
+<h2>⑮ 行业 ETF 对照</h2>
+<div class="sub">东方财富日线（前复权），区间和归因表同一段：2026-10-09 收盘 → 2026-11-20 收盘；括号里是 11-20 当日。拿来近似判断“是整个方向在跌，还是这两支基金自己的事”，不是基金成分。</div>
+<div class="row">有色金属 ETF 南方（512400）：-24.36%（当日 -2.89%）<br>黄金 ETF 华安（518880）：-15.49%（当日 -4.34%）<br>煤炭 ETF 国泰（515220）：-10.55%（当日 -0.43%）<br>创新药 ETF 银华（159992）：-11.03%（当日 -3.23%）<br>半导体 ETF 国联安（512480）：-18.22%（当日 -4.36%）<br>沪深 300 ETF 华泰柏瑞（510300）：-8.37%（当日 -1.03%）<br>中证 500 ETF 南方（510500）：-16.88%（当日 -3.71%）</div>
+<div class="row"><b>对照</b>　002910 -13.72%（当日 -1.48%）；021180 -14.55%（当日 -1.68%）<br>⚪ 两支基金区间跌幅小于有色和黄金 ETF、大于沪深 300 ETF；11-20 当日跌幅小于黄金、有色、半导体、创新药 ETF。可能是持仓分散、现金约 17%–19% 拖低了波动，这一句是我的推断。</div>
+<div class="row">CXO 专用 ETF：<span class="todo">待填</span>（药明系占比高的指数产品代码这轮没核实，创新药 ETF 不等同于 CXO）。</div>
+</div>
+
+<div class="card" id="s16">
+<h2>⑯ 费用与持有期</h2>
+<div class="sub">来源：天天基金费率页 2026-11-22、季报概况。</div>
+<div class="row"><b>002910</b><br>管理费 1.20%/年，托管费 0.20%/年，无销售服务费，合计 1.40%/年（已从净值里扣）<br>申购费 1.50%，天天基金优惠 0.15%（小于 100 万元）<br>赎回费：不足 7 天 1.50%；7–29 天 0.75%；30–364 天 0.50%；365–729 天 0.25%；730 天以上 0<br>按现市值估算每年约 = 现市值 × 1.40%（现市值见 ①）</div>
+<div class="row"><b>021180 C 类</b><br>管理费 1.20%/年，托管费 0.20%/年，销售服务费 0.50%/年，合计 1.90%/年<br>申购费 0<br>赎回费：6 天以内 1.50%；7–29 天 0.50%；30 天以上 0<br>按现市值估算每年约 = 现市值 × 1.90%（现市值见 ①）</div>
+<div class="row">交易确认：买入、卖出都是 T+1；两支单日累计购买上限 50 万元。</div>
+<div class="row">你的份额买入日期：在⑱「六-B」里按笔填，会自动显示每笔持有天数和赎回费档位，以及加权持有天数；份额金额填全后可一键覆盖①的份额和成本单价（可还原）。<br>中行金条回收价：776 元/克（你 11-22 在手机银行查到；①里的 781.24 是卖出口径，差 5.24 元/克）。</div>
+</div>
+
+<div class="card" id="s17">
+<h2>⑰ 决策规则卡</h2>
+<div class="sub">线由你自己定，我不替你填数。留空 = 未设线。设了之后下面会按当前数亮灯，只是提醒，不是买卖指令。</div>
+<div class="row"><div class="ln">线一：金条账面亏损达到 <input id="rl1" type="number" placeholder="如 20">%</div><div class="lamp" id="rs1"></div></div>
+<div class="row"><div class="ln">线二：金条 + 金属三只占组合达到 <input id="rl2" type="number" placeholder="如 85">%</div><div class="lamp" id="rs2"></div></div>
+<div class="row"><div class="ln">线三：基金距区间高点回撤达到 <input id="rl3" type="number" placeholder="如 25">%</div><div class="lamp" id="rs3"></div><div class="sub">线三取两支里回撤更深的那个，随净值自动更新。</div></div>
+<div class="row"><b>文字规则（不自动判断，你自己对照）</b><br>经理变更：<span class="todo">待填你的处理办法</span><br>下一份季报前十与上一季重合只数：<span class="todo">待填你的警戒数</span>（⑧里是 1 / 1）<br>规模继续单季翻倍：<span class="todo">待填</span><br>限购状态变化：<span class="todo">待填</span></div>
+</div>
+
+<div class="card" id="s18">
+<h2>⑱ 综合研判（两支基金 + 中行金条）</h2>
+<div class="sub">只用本页前面各块已核到的数据；每条后面标了出处块号。⚪＝我按页面数字算的或归纳的，不是机构结论。这是研究参考，不构成投资建议，我不给买入/卖出/加仓/减仓的指令，也不给目标价和仓位数。</div>
+
+<div class="row"><b>一、先看你的组合（①⑨）</b><br>
+合计成本、现市值、浮亏看 ① 的最后三行（随净值自动算，这里不再写死数字）。<br>
+资产占比看 ① 最后一行。<br>
+结构上的要点：金条成本金额远大于两支基金，金条现在是浮亏、两支基金是浮盈，两边抵掉之后组合整体只小亏。⚪<br>
+结论：这个组合的账面盈亏，主要取决于金价，不取决于两支基金。⚪</div>
+
+<div class="row"><b>二、黄金（中行吉祥金投资金条）</b><br>
+<b>已核到的事实</b><br>
+· 现价 781.24 元/克（11-21 中行报价）；与你填的买入价差多少、克重多少，都在 ① 里按你填的数实时算。<br>
+· 要回到成本价，现价需涨幅 = 买入价 ÷ 781.24 − 1（① 里按你填的买入价算）。⚪<br>
+· 国际金价：COMEX 12 月 11-20 报 3,539 美元/盎司，周跌 8.94%，较年初高点 5,596 跌约 36.8%（⑩）。<br>
+· 本轮跌因被报道为美元走强、加息预期升温：美元指数约 103.5–104，10 年美债约 4.94%–5.05%，12 月加息预期普遍为 25 个基点（⑩）。<br>
+<b>我的研判</b><br>
+· 短期（到 12 月中旬）：压力方向由利率和美元决定。12-04 非农、12-10 CPI、12-10 03:00 美联储决议是三个会改变预期的节点（⑪）。结果比预期偏鹰，对金价不利；偏鸽则相反。我无法预判结果。⚪<br>
+· 价格已大幅回落：一周内 -8.94%，较年初高点 -36.8%（⑩），属于高波动状态，之后单周向任一方向波动都可能很大。⚪<br>
+· 风险点：你的现价是银行卖出价，真卖回去按回收价会更低（⑯），你在手机银行查到回收价 776 元/克（11-22）；与买入价、克重相乘后的回收价浮盈亏，看 ⑱「六-B」。<br>
+<b>11-22 联网补查到的（标了出处和可信度）</b><br>· 实际利率：10 年期 TIPS 收益率 11-17 为 2.89%（AInvest 11-19 稿转述美联储 H.15，🟡 我没直接打开 H.15 原表）；同一来源 11-13 为 2.91%、11-09 为 2.66%、2 月底为 1.72%；另一家（同花顺 11-13）写三个交易日从 2.66% 升到 2.86%。方向一致，小数位有差，🟡。<br>· 🔴 有冲突：普洛托贵金属 11-17 引述世界黄金协会称「长期实际利率维持在 3.1% 上方」，与上面 2.89% 不一致，口径可能不同（短期/长期），我没法判断，未采用。<br>· 央行购金（世界黄金协会，2026-11-03 发布，china.gold.org）：三季度全球央行净购金 321 吨，同比 +42%；年初至今 675 吨，同比 +6%；三季度全球黄金总需求 1,369 吨，同比 -1%；三季度均价 4,262 美元/盎司。金饰需求同比 -17% 至 313 吨（中国金融信息网转述）。<br>· 黄金 ETF：三季度全球实物黄金 ETF 净流入 211 吨（中国证券网转述世界黄金协会）。🟡「10 月流出 62 吨」只见于 AInvest（AI 生成稿），没找到协会原始数据，不采用为事实。<br>· 中国央行：10 月末黄金储备 7,830 万盎司，较 9 月末 +83 万盎司，连续第 24 个月增持（人民银行 11-07 公布，新浪财经、东方财富转述）。<br>· 加息概率：12 月加息 25 个基点，CME FedWatch 约 92%（AInvest 引述），预测市场约 89.5%，🟡 均为二手，页面⑩写的是「普遍预期」。<br>· 年内高点：AInvest 写 1 月纪录 5,594.82，⑩ 里是 5,596，差 1.18 美元，🟡 未取到交易所原值，对 -36.8% 影响很小。<br><b>中行金条回收价（你问的重点）</b><br>· ✅ 回收价已由你本人在手机银行查到：776 元/克（11-22 周日；周一开盘后是否变动我没法核）。下面几条网上传闻只作对照。<br>· 回购规则：只有一个来源说明了价格关系，深圳在线 2026-08-26 稿称「中行指定网点回购本行售出的吉祥金，价格挂钩实时金价，通常比卖出价每克减 4–10 元，资金 1–5 个工作日到账，需带原购买凭证」；另一网站（zhenshoucang）写「按当日金价 -4 元/克，需原封包装，购买后 6 个月起」。两者差异在 4 元与 4–10 元，🟡 都不是中行官方文件。<br>· 对照实测：你查到的 776 比卖出价 781.24 低 5.24 元/克，落在深圳在线稿说的「4–10 元」内，也比 zhenshoucang 说的「-4 元」多 1.24 元。只有这一个样本，⚪ 不能据此认定中行的固定扣减规则。<br>· 按 776 算：每克比卖出价少 5.24 元，乘上你的克重就是多亏的金额（⑱「六-B」会自动算）。<br>· 🟡 另有一条微头条（11-21 早盘）写中行吉祥金 778.51，与① 用的 781.24 差 2.73 元，时点和口径不同，没采用。<br>· 回收价已填在下面「六-B 你来填」，看板会自动算回收价浮盈亏。<br><b>仍然数据不足</b>：金价历史分位、黄金 ETF 官方 10 月数据、中行官方回购规则与手续费文件（回收价已有你的实测，但扣减规则没有官方文件）、TIPS 的美联储原表数。</div>
+
+<div class="row"><b>三、002910 易方达供给改革混合</b><br>
+<b>已核到的事实</b><br>
+· 最新净值看 ①（自动更新）；截至 11-20 的 30 个交易日跌 13.72%，当时距 07-01 高点 8.7744 回撤 21.68%（②⑬）；按 11-23 净值回撤收窄到约 19.5%（⑰ 线三）。<br>
+· 三季度 -9.42%，基准 -11.79%；近 1 年 +142.68%，基准 -5.01%（⑬）。<br>
+· 前十大三季度只留下 1 只（寒武纪），其余九只全换；前十合计 52.23%（④⑧）。<br>
+· 规模 35.49 亿 → 219.43 亿，三季度净申购 11.57 亿份（⑫）。<br>
+· 近 30 日跌幅里，黄金有色三项贡献 -5.82 个百分点，约占总跌幅 42%（②）。<br>
+· 估值：紫金 TTM 市盈率 8.83、西部矿业 7.81、兖矿 13.77、药明康德 16.14（⑭）。<br>
+<b>我的研判</b><br>
+· 这一支的持仓和第二季度比几乎是换了一支基金：二季度前十以半导体为主，三季度以资源 + CXO + 机械为主（⑧）。过去一年的业绩，不能直接当作现在这套持仓的业绩。⚪<br>
+· 它和你的金条同向：金属三只合计 19.83%（⑨），黄金价格再跌时，两边会一起受影响。⚪<br>
+· 规模在一个季度里增长约 56%，新进资金的成本普遍高于现净值（⑫，⚪），这可能带来后续赎回压力，但我没有数据能证明会不会发生。<br>
+· 估值：周期股低市盈率可能出现在利润高点，不能直接当便宜（⑭）。<br>
+<b>数据不足</b>：重仓股的历史估值分位、夏普和卡玛比率、四季度实际持仓（预计 2027 年 1 月下旬披露，🟡）、你份额的买入日期（⑱「六-B」已支持多笔买入，等你填）。</div>
+
+<div class="row"><b>四、021180 易方达产业机遇混合 C</b><br>
+<b>已核到的事实</b><br>
+· 最新净值看 ①；截至 11-20 的 30 日跌 14.55%，当时距 08-17 高点 3.2412 回撤 21.99%（②⑬）；按 11-23 净值回撤收窄到约 19.7%（⑰ 线三）。<br>
+· 三季度 -8.84%，基准 -9.16%；近 1 年 +133.52%（⑬）。<br>
+· 规模 0.62 亿 → 49.35 亿；三季度 C 类净申购 10.78 亿份，约占期末规模 89%（⚪）（⑫）。<br>
+· 与 002910 前十有 9 只相同（首页提示），另有港股 6.29%（④）。<br>
+· 年费合计 1.90%，比 002910 的 1.40% 高 0.50 个百分点（⑯）。<br>
+<b>我的研判</b><br>
+· 两支前十重合度很高，买两支约等于买同一组仓位（首页提示），不是分散。⚪<br>
+· 021180 成立才约 2 年（经理 2024-08-28 起），规模增长速度更快，业绩样本更短，样本不足以做稳定性判断。⚪<br>
+· 费率更高、持仓相同的情况下，除非你对 C 类的短期持有有特殊需要，否则每年多付约 0.5% 是确定的成本，可对照⑯自行核算。⚪<br>
+<b>数据不足</b>：A 类对比数据（本页只放了 C 类）、历史分位、夏普比率、你的买入日期（⑱「六-B」已支持多笔买入，等你填）。</div>
+
+<div class="row"><b>五、三类资产放在一起（⑨⑮⑰）</b><br>
+· 金条 + 金属三只的实际占比看 ⑨ 最后一行（只算前十大持仓，实际会更高）。⚪<br>
+· 近 30 日对照：有色 ETF -24.36%、黄金 ETF -15.49%、两支基金 -13.72% / -14.55%（⑮），基金跌得比资源 ETF 小，原因可能是仓位 80%–84%、持有 CXO 和机械等（我的推断 ⚪）。<br>
+· 如果金价再下跌 10%（假设值，不是预测）：金条现市值再少 10%，金额 = 现市值 × 10%（见 ①）。基金在这个情景下的联动幅度我没有可靠模型，不估算。⚪<br>
+· 你的规则卡线一、线二、线三还没填（⑰），所以现在没有任何预设的触发点。</div>
+
+<div class="row"><b>六、可操作的事（都是研究层面的，不是交易指令）</b><br>
+1. 把规则卡的 3 条线填上，由你自己定数。目前金条与两支基金的浮动幅度看 ①，“回撤多少”看 ⑰ 线三（随净值自动变），线怎么设，决定了后面看到什么算「触发」。<br>
+2. 12-04、12-08～09、12-10 三个时点前后，重新抓一次金价、美元指数和 10 年美债，对照⑩更新，我可以代你抓。<br>
+3. 2027 年 1 月下旬四季报出来后，看⑧的重合只数、经理是否变动、规模是否继续翻倍，这三项在⑰里都有位置。🟡<br>
+4. 在下面「你来填」里补：中行金条回收价、两支基金的买入日期、你自己的资金用途和期限。这些只有你知道。</div>
+
+<div class="row"><b>六-B 你来填（我留空，不替你填）</b><br>买入 / 卖出 / 加仓 / 减仓指令、目标价、仓位数，都留给你按实际情况填。输入会存在本机浏览器里。<br>
+<div class="ln">金条回收价（元/克）<input id="y_rec" type="number" value="776" placeholder="App 里看"></div>
+<div class="ln" id="y_recout">回收价浮盈亏：待填</div>
+<div class="ln">金条 操作<input id="y_a1" type="text" placeholder="你填">目标价<input id="y_p1" type="text" placeholder="你填">仓位数<input id="y_q1" type="text" placeholder="你填"></div>
+<div class="ln">002910 操作<input id="y_a2" type="text" placeholder="你填">目标价<input id="y_p2" type="text" placeholder="你填">仓位数<input id="y_q2" type="text" placeholder="你填"></div>
+<div class="ln">021180 操作<input id="y_a3" type="text" placeholder="你填">目标价<input id="y_p3" type="text" placeholder="你填">仓位数<input id="y_q3" type="text" placeholder="你填"></div>
+<div class="row" id="lots2"><b>002910 买入记录</b><div class="lotrows" id="lr2"></div><button type="button" onclick="addLot(2)">+ 加一笔</button><div class="ln" id="y_o2">002910：待填日期和金额</div><div class="ln" id="y_ap2"></div></div>
+<div class="row" id="lots3"><b>021180 买入记录</b><div class="lotrows" id="lr3"></div><button type="button" onclick="addLot(3)">+ 加一笔</button><div class="ln" id="y_o3">021180：待填日期和金额</div><div class="ln" id="y_ap3"></div></div>
+<div class="sub">每笔填日期、金额；「份额」可不填（填了才算单笔浮盈亏）。每一笔都填了金额和份额时，会出现「用各笔份额和金额覆盖①」按钮，点了才会改①的份额和成本单价（我不会自动改），旁边有「还原」。持有天数按自然日算到今天，加权天数按金额加权。总浮盈亏 = 当前总份额（①里的份额）× 11-20 净值 − 各笔金额合计。赎回费档位取自⑯（天天基金 2026-11-22），具体计天规则以基金合同和招募说明书为准，我没核。删除某一笔只会删掉你填的那一行，存在本机浏览器里。</div>
+<div class="ln">资金用途<input id="y_u" type="text" placeholder="你填">持有期限<input id="y_t" type="text" placeholder="你填"></div>
+</div>
+
+<div class="row"><b>七、这一块的局限（请对照）</b><br>
+· 首页提示写「近1年 +103.68% / +96.24%」，⑬ 季报写「近 1 年 +142.68% / +133.52%」：两处截止日不同（一个是 11-20 前后的实时口径，一个是 9-30 季报口径），我没有拆开核对，🟡待核实，引用时以⑬的季报值为准，因为它有原文出处。<br>
+· 我没有你的风险承受能力、这笔钱的用途、持有期限、家庭现金流，这几项决定了怎么看亏损。没有它们，我不能代你做仓位判断。<br>
+· 本块里凡标 ⚪ 的，都是我按页面数字推的，不是基金公司或研究机构的结论。<br>
+· 页面所有价格截至 11-20 / 11-21，周一开盘后会变。</div>
+</div>
+<div class="card">
+<h2>⚠ 首页提示（已核到的事实）</h2>
+<ul>
+<li>金条：11-21 中行报价 781.24 元/克（银行卖出口径；真卖回去按回收价更低，11-22 手机银行查到 776）。买入价、克重、浮亏都在 ① 里按你填的数实时算。</li>
+<li>002910 现净值 7.0603（11-23，+2.74%）、021180 现净值 2.6015（11-23，+2.88%）；相对你成本的浮盈看 ①。每日净值当天晚上才会公布，页面每次打开会自动取。</li>
+<li>两支基金前十大重仓 9 只相同、占比接近，买两支≈买同一组仓位，分散度有限。</li>
+<li>两支基金经理都是杨宗昌（已由两份 2026Q3 季报 §4.1 确认，2026-11-22 核）。</li>
+<li>两支近1月均跌约 9%，与同类平均（约 -9.5% / -11.6%）相比差别不大，近1年涨幅为 +103.68% / +96.24%。</li>
+<li>黄金与基金同向：国际金价本周累计约 -9%（新华财经），而这两支基金的重仓里也有紫金矿业、金诚信、西部矿业等金属股；同时持有金条和这两支基金，等于在黄金方向上同向加码，不是对冲。</li>
+</ul>
+</div>
+<div class="sub">本看板为个人记录工具，不构成投资建议。</div>
+</div>
+
+<div class="card" id="cfg">
+<h2>⚙ 配置搬移（电脑 ↔ 手机）</h2>
+<div class="sub">页面里你填的克重、份额、成本、买入记录、规则线都存在打开它的那个浏览器里，换设备不会自动带过去。这里可以把这台设备上的配置导成一串文字，粘到另一台设备的同一个框里导入。</div>
+<div class="ln"><button type="button" onclick="expCfg()">导出配置</button><button type="button" onclick="impCfg()">导入配置</button></div>
+<textarea id="cfgbox" rows="4" style="width:100%;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:6px"></textarea>
+<div class="ln" id="cfgmsg"></div>
+</div>
+<script>
+// 走势
+var navA=[7.9640,7.8533,7.8721,7.7934,7.5905,7.5437,7.5882,7.5293,7.4390,7.2181,7.4034,7.3407,7.2768,7.3247,7.3076,7.2307,7.2579,7.2316,7.5125,7.6458,7.5024,7.5428,7.5668,7.5678,7.3529,7.2803,7.2339,7.1716,7.0355,6.9746,6.8717];
+var navB=[2.9591,2.9109,2.9223,2.8903,2.8154,2.7998,2.8129,2.7892,2.7551,2.6674,2.7326,2.7045,2.6803,2.7022,2.6930,2.6666,2.6782,2.6646,2.7793,2.8317,2.7751,2.7936,2.8045,2.8070,2.7240,2.6907,2.6711,2.6477,2.5973,2.5718,2.5286];
+(function(){var A=navA.map(function(v){return v/navA[0]*100}),B=navB.map(function(v){return v/navB[0]*100});
+var all=A.concat(B),mn=Math.min.apply(null,all)-1,mx=Math.max.apply(null,all)+1;
+function pl(a,c){return '<polyline fill="none" stroke="'+c+'" stroke-width="1.5" points="'+a.map(function(v,i){return (i*10)+","+(95-(v-mn)/(mx-mn)*90)}).join(" ")+'"/>'}
+document.getElementById("chart").innerHTML=pl(A,"#c8102e")+pl(B,"#1a5fb4");})();
+// 市值与浮盈浮亏
+var NAV1=7.0603,NAV2=2.6015,RET1=2.74,RET2=2.88,GC=0;
+var ids=["gp","gg","cp","s1","c1","s2","c2","rl1","rl2","rl3","y_rec","y_a1","y_p1","y_q1","y_a2","y_p2","y_q2","y_a3","y_p3","y_q3","y_u","y_t"];
+function f(x){return x.toFixed(2)}
+function fmt(x){return x.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",")}
+function sign(x){return (x>=0?"+":"")+fmt(x)}
+function cls(e,x,empty){e.className=empty?"v":("v "+(x>=0?"up":"down"))}
+function yrec(){var r=document.getElementById("y_rec"),o=document.getElementById("y_recout"),w=+gg.value||0;if(r.value===""||w<=0){o.textContent="回收价浮盈亏：待填";return}if(!(GC>0)){o.textContent="回收价浮盈亏：待填买入价";return}var d=(+r.value-GC)*w;o.textContent="回收价浮盈亏："+sign(d)+" 元（"+((+r.value/GC-1)*100>=0?"+":"")+f((+r.value/GC-1)*100)+"%）";}
+var LOTS={2:[],3:[]};
+var TIERS={2:[[0,"1.50%"],[7,"0.75%"],[30,"0.50%"],[365,"0.25%"],[730,"0"]],3:[[0,"1.50%"],[7,"0.50%"],[30,"0"]]};
+function loadLots(){[2,3].forEach(function(k){try{LOTS[k]=JSON.parse(localStorage.getItem("fb5_lots"+k)||"[]")}catch(e){LOTS[k]=[]}if(!LOTS[k].length)LOTS[k]=[{d:"",m:"",s:""}];renderLots(k)})}
+function saveLots(k){localStorage.setItem("fb5_lots"+k,JSON.stringify(LOTS[k]))}
+function renderLots(k){var box=document.getElementById("lr"+k);box.innerHTML="";LOTS[k].forEach(function(l,i){var div=document.createElement("div");div.className="lot";div.innerHTML='<input type="date" value="'+(l.d||"")+'"><input type="number" placeholder="金额(元)" value="'+(l.m||"")+'"><input type="number" placeholder="份额(可选)" value="'+(l.s||"")+'"><button type="button">删</button><span class="lo"></span>';var ins=div.querySelectorAll("input");[["d",0],["m",1],["s",2]].forEach(function(p){ins[p[1]].addEventListener("input",function(){LOTS[k][i][p[0]]=this.value;saveLots(k);yfund(k)})});div.querySelector("button").addEventListener("click",function(){LOTS[k].splice(i,1);if(!LOTS[k].length)LOTS[k]=[{d:"",m:"",s:""}];saveLots(k);renderLots(k)});box.appendChild(div)});yfund(k)}
+function addLot(k){LOTS[k].push({d:"",m:"",s:""});saveLots(k);renderLots(k)}
+function applyLots(k){var sumM=0,sumS=0;LOTS[k].forEach(function(l){if(+l.m>0&&+l.s>0){sumM+=+l.m;sumS+=+l.s}});if(!(sumS>0))return;var sid=k==2?"s1":"s2",cid=k==2?"c1":"c2";localStorage.setItem("fb5_undo"+k,JSON.stringify({s:document.getElementById(sid).value,c:document.getElementById(cid).value}));document.getElementById(sid).value=String(Math.round(sumS*10000)/10000);document.getElementById(cid).value=String(Math.round(sumM/sumS*1000000)/1000000);calc()}
+function undoLots(k){var u=localStorage.getItem("fb5_undo"+k);if(!u)return;u=JSON.parse(u);document.getElementById(k==2?"s1":"s2").value=u.s;document.getElementById(k==2?"c1":"c2").value=u.c;localStorage.removeItem("fb5_undo"+k);calc()}
+function yfund(k){var nav=k==2?NAV1:NAV2,nm=k==2?"002910":"021180",sh=+document.getElementById(k==2?"s1":"s2").value||0,o=document.getElementById("y_o"+k),rows=document.getElementById("lr"+k).children;var now=new Date();now=new Date(now.getFullYear(),now.getMonth(),now.getDate());var sumM=0,sumW=0,sumMd=0,cnt=0,sumS=0,allS=true,bad=false;
+ LOTS[k].forEach(function(l,i){var lo=rows[i]?rows[i].querySelector(".lo"):null,txt=[];var days=null,m=l.m===""?null:+l.m;if(l.d){var p=l.d.split("-"),dt=new Date(+p[0],+p[1]-1,+p[2]);days=Math.round((now-dt)/86400000);if(days<0){txt.push("日期晚于今天");bad=true;days=null}else{var fee="";TIERS[k].forEach(function(t){if(days>=t[0])fee=t[1]});txt.push("持有 "+days+" 天，赎回费档位 "+fee)}}
+  if(m!==null&&m>0){sumM+=m;cnt++;if(days!==null){sumW+=m;sumMd+=m*days}}
+  if(l.s!==""&&+l.s>0){sumS+=+l.s;if(m!==null&&m>0){var pl=+l.s*nav-m;txt.push("单笔浮盈亏 "+sign(pl)+" 元（"+(pl>=0?"+":"")+f(pl/m*100)+"%）")}}else if(m!==null&&m>0){allS=false}
+  if(lo)lo.textContent=txt.join("；")});
+ if(bad){o.textContent=nm+"：有一笔买入日期晚于今天，请检查";return}
+ var ap=document.getElementById("y_ap"+k);if(ap)ap.innerHTML="";
+ if(!cnt){o.textContent=nm+"：待填日期和金额";return}
+ var parts=["共 "+cnt+" 笔，买入金额合计 "+fmt(sumM)+" 元"];
+ if(sumW>0)parts.push("加权持有 "+f(sumMd/sumW)+" 天"+(sumW<sumM?"（只含填了日期的 "+fmt(sumW)+" 元）":""));
+ if(sh>0){var mv=sh*nav,pl2=mv-sumM;parts.push("现市值 "+fmt(mv)+" 元，总浮盈亏 "+sign(pl2)+" 元（"+(pl2>=0?"+":"")+f(pl2/sumM*100)+"%）")}
+ var full=true,aM=0,aS=0;LOTS[k].forEach(function(l){if(+l.m>0&&+l.s>0){aM+=+l.m;aS+=+l.s}else if(+l.m>0||+l.s>0){full=false}});
+ var hasUndo=!!localStorage.getItem("fb5_undo"+k),h="";
+ if(aS>0&&full){var cu=aM/aS,mv3=aS*nav,pl3=mv3-aM,diff=Math.abs(aS-sh)>0.5||Math.abs(cu-(k==2?+document.getElementById("c1").value:+document.getElementById("c2").value))>0.0005;if(diff){h="按各笔算：份额 "+fmt(aS)+"，成本单价 "+cu.toFixed(4)+"，现市值 "+fmt(mv3)+" 元，总浮盈亏 "+sign(pl3)+" 元（"+(pl3>=0?"+":"")+f(pl3/aM*100)+"%）。 <button type=\"button\" onclick=\"applyLots("+k+")\">用各笔份额和金额覆盖①</button>"}else{h="各笔份额、金额与①一致。"}}else if(cnt){h="要覆盖①，需要每一笔都填金额和份额（有金额没份额，或反过来，都不算）。"}
+ if(hasUndo)h+=" <button type=\"button\" onclick=\"undoLots("+k+")\">还原覆盖前的①</button>";
+ if(ap)ap.innerHTML=h;
+ var cc=(k==2?+document.getElementById("c1").value:+document.getElementById("c2").value)*sh;if(cc>0&&Math.abs(cc-sumM)>0.5)parts.push("提示：与成本单价×份额 "+fmt(cc)+" 元不一致，可能含手续费或成本单价需改");
+ o.textContent=nm+"："+parts.join("；")}function calc(){var gpe=document.getElementById("gp");GC=(!gpe||gpe.value==="")?0:+gpe.value;yrec();if(document.getElementById("lr2")){yfund(2);yfund(3)}
+ var w=+gg.value||0,gp=cp.value===""?null:+cp.value,a=+s1.value||0,b=+s2.value||0,c1v=c1.value===""?null:+c1.value,c2v=c2.value===""?null:+c2.value;
+ var kg=(GC>0?w*GC:0),mg=(gp!==null?w*gp:null);
+ kg_.textContent=(w>0?(GC>0?fmt(kg)+" 元":"待填买入价"):"0.00 元（空仓）");
+ if(w<=0){mg_.textContent="0.00 元";pg.textContent="空仓，不计盈亏";cls(pg,0,true);}
+ else if(mg===null){mg_.textContent="待填现价";pg.textContent="待填现价";cls(pg,0,true);}
+ else if(!(GC>0)){mg_.textContent=fmt(mg)+" 元";pg.textContent="待填买入价";cls(pg,0,true);}
+ else{mg_.textContent=fmt(mg)+" 元";var d=mg-kg;pg.textContent=sign(d)+" 元（"+(d/kg*100>=0?"+":"")+f(d/kg*100)+"%）";cls(pg,d);}
+ var m1=a*NAV1,m2=b*NAV2;
+ m1_.textContent=(a>0?fmt(m1)+" 元":"0.00 元（空仓）");m2_.textContent=(b>0?fmt(m2)+" 元":"0.00 元（空仓）");
+ var costSum=kg,mvSum=mg||0,plSum=0,miss=[];
+ if(w>0&&mg===null)miss.push("金条现价");
+ if(w>0&&!(GC>0))miss.push("金条买入价");
+ if(a<=0){k1.textContent="空仓";p1.textContent="空仓，不计盈亏";cls(p1,0,true);}
+ else if(c1v===null){k1.textContent="待填成本单价";p1.textContent="待填成本单价";cls(p1,0,true);miss.push("002910 成本");}
+ else{var cst1=c1v*a;k1.textContent=fmt(cst1)+" 元";p1.textContent=sign(m1-cst1)+" 元（"+((m1/cst1-1)*100>=0?"+":"")+f((m1/cst1-1)*100)+"%）";cls(p1,m1-cst1);costSum+=cst1;plSum+=m1-cst1;}
+ if(b<=0){k2.textContent="空仓";p2.textContent="空仓，不计盈亏";cls(p2,0,true);}
+ else if(c2v===null){k2.textContent="待填成本单价";p2.textContent="待填成本单价";cls(p2,0,true);miss.push("021180 成本");}
+ else{var cst2=c2v*b;k2.textContent=fmt(cst2)+" 元";p2.textContent=sign(m2-cst2)+" 元（"+((m2/cst2-1)*100>=0?"+":"")+f((m2/cst2-1)*100)+"%）";cls(p2,m2-cst2);costSum+=cst2;plSum+=m2-cst2;}
+ if(w>0&&mg!==null&&GC>0)plSum+=mg-kg;
+ mvSum=m1+m2+(mg||0);
+ var empty=(w<=0&&a<=0&&b<=0);
+ totc.textContent=empty?"0.00 元（空仓）":(miss.length?fmt(costSum)+" 元 + 待填（"+miss.join("、")+"）":fmt(costSum)+" 元");
+ tot.textContent=fmt(mvSum)+" 元";
+ if(empty){pl.textContent="空仓，不计盈亏";cls(pl,0,true);}
+ else if(miss.length){pl.textContent="待填完整后才能算（缺："+miss.join("、")+"）；已填部分累计 "+sign(plSum)+" 元";cls(pl,0,true);}
+ else{pl.textContent=sign(mvSum-costSum)+" 元（"+((mvSum/costSum-1)*100>=0?"+":"")+f((mvSum/costSum-1)*100)+"%）";cls(pl,mvSum-costSum);}
+ var dmv=document.getElementById("daymv");
+ if(dmv){if(a>0||b>0){var e1=a>0?a*NAV1*(1-1/(1+RET1/100)):0,e2=b>0?b*NAV2*(1-1/(1+RET2/100)):0,e3=e1+e2;dmv.className="ln "+(e3>=0?"up":"down");dmv.textContent="当日两支基金市值变动（最新净值对上一交易日）："+sign(e3)+" 元（002910 "+sign(e1)+"；021180 "+sign(e2)+"）；按公布涨跌幅反推，可能有几元误差";}else{dmv.className="ln";dmv.textContent="当日两支基金市值变动：空仓";}}
+ pct.textContent=mvSum?(f(m1/mvSum*100)+"% / "+f(m2/mvSum*100)+"% / "+(mg!==null?f(mg/mvSum*100):"待填")+"%"):"空仓";
+ // 同向暴露
+ var gold=(w>0&&mg!==null)?mg:0;
+ var DIR=[["金属三只（紫金/西部/金诚信）",19.83,20.61],["煤炭",8.99,11.23],["CXO（药明/康龙）",12.35,12.42],["机械设备（巨星/三一）",8.40,4.74],["AI 芯片（寒武纪）",2.66,2.71]];
+ var hx="",metalAmt=0;
+ if(mvSum>0){
+  hx+='<div class="ln">黄金金条（中行）：<b>'+fmt(gold)+' 元</b>（占 '+f(gold/mvSum*100)+'%）</div>';
+  DIR.forEach(function(d,i){var amt=(a>0?m1*d[1]/100:0)+(b>0?m2*d[2]/100:0);if(i===0)metalAmt=amt;hx+='<div class="ln">'+d[0]+'：<b>'+fmt(amt)+' 元</b>（占 '+f(amt/mvSum*100)+'%）</div>';});
+  var gm=gold+metalAmt,gmp=gm/mvSum*100;
+  hx+='<div class="ln" style="border-top:1px solid #eee;margin-top:4px"><b>金条 + 金属三只：'+fmt(gm)+' 元，占组合 '+f(gmp)+'%</b></div>';
+  window._gmp=gmp;
+ }else{hx='<div class="ln">空仓，无暴露</div>';window._gmp=null;}
+ document.getElementById("exlist").innerHTML=hx;
+ // 规则卡
+ var gd=(w>0&&mg!==null&&GC>0)?(mg/kg-1)*100:null;
+ function lamp(id,val,txt,hit){document.getElementById(id).innerHTML=(val===""?"未设线｜":(hit===null?"待填数据｜":(hit?"🔴 已触发｜":"🟢 未触发｜")))+txt;}
+ var r1=document.getElementById("rl1").value,r2=document.getElementById("rl2").value,r3=document.getElementById("rl3").value;
+ lamp("rs1",r1,"当前："+(gd===null?"待填":f(gd)+"%"),(gd===null||r1==="")?null:(-gd>=+r1));
+ lamp("rs2",r2,"当前："+(window._gmp===null?"空仓":f(window._gmp)+"%"),(window._gmp===null||r2==="")?null:(window._gmp>=+r2));
+ var HI={2:8.7744,3:3.2412},d1=(1-NAV1/HI[2])*100,d2=(1-NAV2/HI[3])*100,dm=Math.max(d1,d2);
+ lamp("rs3",r3,"当前回撤：002910 -"+f(d1)+"%，021180 -"+f(d2)+"%（随净值更新）",r3===""?null:(dm>=+r3));
+ ids.forEach(function(i){localStorage.setItem("fb5_"+i,document.getElementById(i).value)});}
+var kg_=document.getElementById("kg"),mg_=document.getElementById("mg"),pg=document.getElementById("pg"),m1_=document.getElementById("m1"),m2_=document.getElementById("m2"),k1=document.getElementById("k1"),k2=document.getElementById("k2"),p1=document.getElementById("p1"),p2=document.getElementById("p2"),tot=document.getElementById("tot"),totc=document.getElementById("totc"),pl=document.getElementById("pl"),pct=document.getElementById("pct");
+ids.forEach(function(i){var e=document.getElementById(i);var s=localStorage.getItem("fb5_"+i);if(s!==null&&s!=="")e.value=s;e.addEventListener("input",calc)});
+calc();
+loadLots();
+function expCfg(){var o={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k.indexOf("fb5_")===0)o[k]=localStorage.getItem(k)}document.getElementById("cfgbox").value=JSON.stringify(o);document.getElementById("cfgmsg").textContent="已导出 "+Object.keys(o).length+" 项，复制这串文字到另一台设备导入。"}
+function impCfg(){var v=document.getElementById("cfgbox").value.trim(),m=document.getElementById("cfgmsg");if(!v){m.textContent="先粘贴配置文字";return}try{var o=JSON.parse(v),n=0;for(var k in o){if(k.indexOf("fb5_")===0){localStorage.setItem(k,o[k]);n++}}m.textContent="已导入 "+n+" 项，正在刷新…";setTimeout(function(){location.reload()},600)}catch(e){m.textContent="这串文字不是有效配置："+e.message}}
+function navDate(x){var d=new Date(x);return (d.getMonth()+1)+"-"+d.getDate()}
+function hhmm(){var d=new Date();return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
+function setNav(code,nav,ret,dt){
+ var ds=navDate(dt),isA=(code==="002910"),q=function(i){return document.getElementById(i)};
+ var el=q(isA?"nav1":"nav2"),elb=q(isA?"nav1b":"nav2b"),nd=q(isA?"nd1":"nd2"),ndb=q(isA?"nd1b":"nd2b"),cg=q(isA?"chg1":"chg2");
+ if(isA){NAV1=nav;RET1=(ret===null||isNaN(ret)?RET1:ret)}else{NAV2=nav;RET2=(ret===null||isNaN(ret)?RET2:ret)}
+ if(el)el.textContent=nav.toFixed(4);if(elb)elb.textContent=nav.toFixed(4);
+ if(nd)nd.textContent=ds;if(ndb)ndb.textContent=ds;
+ if(cg&&ret!==null&&!isNaN(ret)){cg.textContent=(ret>=0?"+":"")+ret.toFixed(2)+"%";cg.className=ret>=0?"up":"down"}
+}
+function legNav(){
+ var src=document.getElementById("navsrc"),ok=[];
+ function step(list,i){
+  if(i>=list.length){src.textContent="净值已自动取到（"+ok.join("、")+"）；取不到时用内置的 11-20 净值。";calc();return}
+  var c=list[i],sc=document.createElement("script");
+  sc.src="https://fund.eastmoney.com/pingzhongdata/"+c+".js?t="+Date.now();
+  sc.onload=function(){try{var a=window.Data_netWorthTrend;if(a&&a.length){var last=a[a.length-1];setNav(c,+last.y,+last.equityReturn,last.x);ok.push(c+" "+navDate(last.x))}}catch(e){}
+   window.Data_netWorthTrend=null;sc.remove();step(list,i+1)};
+  sc.onerror=function(){sc.remove();step(list,i+1)};
+  document.head.appendChild(sc)}
+ step(["002910","021180"],0)}
+function fetchNav(){
+ var src=document.getElementById("navsrc"),chk=document.getElementById("navchk");
+ function done(msg){if(src)src.textContent=msg;if(chk)chk.textContent="最后检查 "+hhmm();calc()}
+ function leg(){try{legNav()}catch(e){if(src)src.textContent="自动取数没跑起来，用的是内置的 11-20 净值。"}}
+ function mob(){
+  var u="https://fundmobapi.eastmoney.com/FundMNewApi/FundMNFInfo?pageIndex=1&pageSize=2&plat=Android&appType=ttjj&product=EFund&Version=1&deviceid=1&Fcodes=002910,021180&_="+Date.now();
+  fetch(u,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
+   var ds=(j&&j.Datas)||[],out=[];
+   if(!ds.length)throw new Error("empty");
+   ds.forEach(function(d){var c=d.FCODE,nv=+d.NAV,rt=(d.NAVCHGRT===null||d.NAVCHGRT==="")?null:+d.NAVCHGRT;setNav(c,nv,rt,(d.PDATE||"").replace(/-/g,"/"));out.push(c+" "+(d.PDATE||"").slice(5)+" "+nv.toFixed(4)+"（"+(rt>=0?"+":"")+rt.toFixed(2)+"%）")});
+   done("净值已取到（备源）："+out.join("；")+"。");
+  }).catch(function(){leg()});
+ }
+ if(!window.fetch){leg();return}
+ fetch("https://qt.gtimg.cn/q=jj002910,jj021180&_="+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){
+  var re=/v_jj(\d{6})="([^"]*)"/g,m,out=[],n=0;
+  while((m=re.exec(t))){var f=m[2].split("~"),nav=+f[5],ret=+f[7],dt=(f[8]||"").replace(/-/g,"/");if(nav>0){setNav(m[1],nav,ret,dt);out.push(m[1]+" "+(f[8]||"").slice(5)+" "+nav.toFixed(4)+"（"+(ret>=0?"+":"")+ret.toFixed(2)+"%）");n++}}
+  if(!n)throw new Error("empty");
+  done("净值已取到："+out.join("；")+"。");
+ }).catch(function(){mob()});
+}
+try{fetchNav()}catch(e){document.getElementById("navsrc").textContent="自动取数没跑起来，用的是内置的 11-20 净值。"}
+setInterval(function(){if(!document.hidden)try{fetchNav()}catch(e){}},180000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)try{fetchNav()}catch(e){}});
+</script>
+</body></html>
